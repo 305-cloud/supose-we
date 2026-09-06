@@ -145,6 +145,44 @@
   .btn-ghost{ border:1px solid rgba(239,227,200,0.35); color:var(--parchment-light); }
   .btn-ghost:hover{ border-color:var(--brass-light); color:var(--brass-light); }
 
+  .visually-hidden{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+  .country-picker{
+    display:flex; align-items:center;
+    border:1px solid rgba(176,141,79,0.35);
+    border-radius:2px; padding:6px 10px;
+    background:rgba(0,0,0,0.18);
+  }
+  .country-picker select{
+    appearance:none; background:transparent; border:none;
+    color:var(--parchment-light); font-family:var(--sans);
+    font-size:0.82rem; cursor:pointer;
+  }
+  .country-picker select:focus-visible{ outline:1px solid var(--brass-light); }
+  .country-picker option{ background:var(--wood); color:var(--parchment-light); }
+  @media (max-width:640px){ .country-picker{ display:none; } }
+
+  .buy-btn{
+    display:inline-block; margin-top:14px;
+    padding:9px 20px;
+    font-family:var(--sans); font-weight:600; font-size:0.8rem;
+    letter-spacing:0.02em;
+    color:var(--wood-deep); background:var(--brass-light);
+    text-decoration:none; border-radius:2px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.35);
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .buy-btn:hover{ transform:translateY(-2px); box-shadow:0 8px 18px rgba(0,0,0,0.45); }
+
+  .footer-country{
+    display:flex; justify-content:center; margin:22px 0 4px;
+  }
+  .footer-country select{
+    background:var(--wood); color:var(--parchment-light);
+    border:1px solid rgba(176,141,79,0.35); border-radius:2px;
+    padding:8px 14px; font-family:var(--sans); font-size:0.85rem;
+  }
+
   /* ---------- Premise ---------- */
   .premise{
     background:var(--wood);
@@ -270,6 +308,10 @@
       <a href="#docket">On the Shelf</a>
       <a href="#counsel">Counsel</a>
     </nav>
+    <div class="country-picker">
+      <label for="country-select" class="visually-hidden">Choose your Amazon storefront</label>
+      <select id="country-select" aria-label="Choose your Amazon storefront"></select>
+    </div>
   </div>
 </header>
 
@@ -308,6 +350,7 @@
         <div class="book-title">The Ethics of Magic</div>
         <div class="book-desc">A Haunted Law Firm novel — the case that opened the file. 5 stars from 36 readers.</div>
         <div class="book-formats">Kindle Unlimited · Kindle · Audiobook · Paperback</div>
+        <a class="buy-btn" data-title="The Ethics of Magic" href="#">Buy on Amazon</a>
       </div>
 
       <div class="book">
@@ -316,6 +359,7 @@
         <div class="book-title">The Heredity of Magic</div>
         <div class="book-desc">A young human-Neanderthal hybrid becomes the target of genetic discrimination. The one Robert wishes more readers knew about.</div>
         <div class="book-formats">Kindle Unlimited · Kindle · Audiobook · Paperback</div>
+        <a class="buy-btn" data-title="The Heredity of Magic" href="#">Buy on Amazon</a>
       </div>
 
       <div class="book">
@@ -324,6 +368,7 @@
         <div class="book-title">A Cascade of Magic</div>
         <div class="book-desc">Tales of the Haunted Law Firm — the origin story. The author's own pick for where to begin.</div>
         <div class="book-formats">Kindle Unlimited · Kindle · Audiobook · Paperback</div>
+        <a class="buy-btn" data-title="A Cascade of Magic Tales of the Haunted Law Firm" href="#">Buy on Amazon</a>
       </div>
 
       <div class="book">
@@ -332,6 +377,7 @@
         <div class="book-title">A Snowstorm of Magic</div>
         <div class="book-desc">Human magic surfaces at Christmas, and the season's climax arrives with the storm.</div>
         <div class="book-formats">Kindle Unlimited · Kindle · Audiobook · Paperback</div>
+        <a class="buy-btn" data-title="A Snowstorm of Magic" href="#">Buy on Amazon</a>
       </div>
 
       <div class="book">
@@ -339,6 +385,7 @@
         <div class="book-title">The Pathways of Magic</div>
         <div class="book-desc">The road the firm's cases take next, deeper into the world its lawyers now call routine.</div>
         <div class="book-formats">Kindle Unlimited · Kindle · Audiobook · Paperback</div>
+        <a class="buy-btn" data-title="The Pathways of Magic" href="#">Buy on Amazon</a>
       </div>
 
     </div>
@@ -369,7 +416,11 @@
   <h2>Pick a volume off the shelf and see where it leads.</h2>
   <div class="cta-row">
     <a href="#docket" class="btn btn-primary">Browse the series</a>
-    <a href="#" class="btn btn-ghost">Follow on Amazon</a>
+    <a class="btn btn-ghost" id="footer-buy" data-title="The Haunted Law Firm series" href="#">Follow on Amazon</a>
+  </div>
+  <div class="footer-country">
+    <label for="country-select-2" class="visually-hidden">Choose your Amazon storefront</label>
+    <select id="country-select-2" aria-label="Choose your Amazon storefront"></select>
   </div>
   <p class="fine">The Haunted Law Firm series is written by Robert Arrington. All five novels are available in Kindle Unlimited, or individually in Kindle, audiobook, and paperback editions.</p>
 </footer>
@@ -391,6 +442,98 @@
       container.appendChild(m);
     }
   }
+
+  // ---------- Amazon buy links, per country ----------
+  (function () {
+    "use strict";
+
+    var COUNTRIES = [
+      { code: "US", flag: "\uD83C\uDDFA\uD83C\uDDF8", name: "United States", domain: "amazon.com" },
+      { code: "GB", flag: "\uD83C\uDDEC\uD83C\uDDE7", name: "United Kingdom", domain: "amazon.co.uk" },
+      { code: "CA", flag: "\uD83C\uDDE8\uD83C\uDDE6", name: "Canada", domain: "amazon.ca" },
+      { code: "AU", flag: "\uD83C\uDDE6\uD83C\uDDFA", name: "Australia", domain: "amazon.com.au" },
+      { code: "DE", flag: "\uD83C\uDDE9\uD83C\uDDEA", name: "Germany", domain: "amazon.de" },
+      { code: "FR", flag: "\uD83C\uDDEB\uD83C\uDDF7", name: "France", domain: "amazon.fr" },
+      { code: "IN", flag: "\uD83C\uDDEE\uD83C\uDDF3", name: "India", domain: "amazon.in" },
+      { code: "JP", flag: "\uD83C\uDDEF\uD83C\uDDF5", name: "Japan", domain: "amazon.co.jp" }
+    ];
+
+    var STORAGE_KEY = "haunted-law-firm-country";
+    var AUTHOR = "Robert Arrington";
+
+    function buildUrl(domain, title) {
+      var query = title + " " + AUTHOR + " book";
+      return "https://www." + domain + "/s?k=" + encodeURIComponent(query);
+    }
+
+    function findCountry(code) {
+      for (var i = 0; i < COUNTRIES.length; i++) {
+        if (COUNTRIES[i].code === code) return COUNTRIES[i];
+      }
+      return COUNTRIES[0];
+    }
+
+    function populateSelect(select, selectedCode) {
+      select.innerHTML = "";
+      COUNTRIES.forEach(function (c) {
+        var opt = document.createElement("option");
+        opt.value = c.code;
+        opt.textContent = c.flag + " " + c.name;
+        if (c.code === selectedCode) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function applyCountry(code) {
+      var country = findCountry(code);
+
+      document.querySelectorAll(".buy-btn, #footer-buy").forEach(function (link) {
+        var title = link.getAttribute("data-title");
+        if (!title) return;
+        link.setAttribute("href", buildUrl(country.domain, title));
+        link.setAttribute("aria-label", "Buy " + title + " on " + country.name + " Amazon");
+      });
+
+      document.querySelectorAll("#country-select, #country-select-2").forEach(function (sel) {
+        if (sel.value !== code) sel.value = code;
+      });
+
+      try {
+        localStorage.setItem(STORAGE_KEY, code);
+      } catch (e) {
+        /* storage may be unavailable; country selection just won't persist */
+      }
+    }
+
+    function detectDefaultCountry() {
+      try {
+        var stored = localStorage.getItem(STORAGE_KEY);
+        if (stored && findCountry(stored)) return stored;
+      } catch (e) {}
+
+      var lang = (navigator.language || "en-US").toUpperCase();
+      var guess = COUNTRIES.find(function (c) {
+        return lang.indexOf(c.code) !== -1;
+      });
+      return guess ? guess.code : "US";
+    }
+
+    function initCountryPicker() {
+      var initial = detectDefaultCountry();
+      var selects = document.querySelectorAll("#country-select, #country-select-2");
+
+      selects.forEach(function (sel) {
+        populateSelect(sel, initial);
+        sel.addEventListener("change", function () {
+          applyCountry(sel.value);
+        });
+      });
+
+      applyCountry(initial);
+    }
+
+    document.addEventListener("DOMContentLoaded", initCountryPicker);
+  })();
 </script>
 
 </body>
