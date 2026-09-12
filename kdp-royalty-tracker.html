@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KDP Royalty Tracker — Ayoo</title>
+<meta name="description" content="Upload your KDP sales export and see royalties, units, and KENP reads by title, month, and marketplace — read entirely in your browser. Nothing is uploaded anywhere.">
+<style>
+  :root{
+    --cream:#F3EFE3;
+    --cream-panel:#FAF7EE;
+    --ink:#1E1B16;
+    --ink-soft:#6B6558;
+    --line:#DDD5C2;
+    --gold:#B4832E;
+    --gold-soft:#E7D9B8;
+    --wine:#5C2A3A;
+    --wine-soft:#EADFE1;
+    --good:#3F6B4A;
+    --good-soft:#E3EDE4;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sans{font-family:"Helvetica Neue",Arial,sans-serif;}
+  a{color:inherit;}
+  .wrap{max-width:960px;margin:0 auto;padding:0 32px;}
+  .tnum{font-variant-numeric:tabular-nums;}
+
+  /* ---------- nav ---------- */
+  .nav{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:28px 32px;max-width:960px;margin:0 auto;
+  }
+  .nav-mark{font-size:20px;font-weight:600;letter-spacing:-0.3px;text-decoration:none;}
+  .nav-back{
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:14px;
+    color:var(--ink-soft);text-decoration:none;
+  }
+  .nav-back:hover{color:var(--ink);}
+
+  .hero{padding:12px 0 44px;}
+  .hero-eyebrow{font-style:italic;color:var(--gold);font-size:15px;margin:0 0 14px;}
+  .hero h1{font-size:36px;line-height:1.2;font-weight:400;margin:0 0 16px;max-width:640px;letter-spacing:-0.3px;}
+  .hero-sub{font-size:16.5px;color:var(--ink-soft);max-width:600px;margin:0;}
+
+  hr.rule{border:none;border-top:1px solid var(--line);margin:0;}
+
+  /* ---------- dropzone ---------- */
+  .dropzone{
+    border:1px dashed var(--line);background:var(--cream-panel);
+    padding:44px 32px;text-align:center;margin:36px 0;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .dropzone.is-dragover{border-color:var(--gold);background:var(--gold-soft);}
+  .dropzone.is-error{border-color:var(--wine);background:var(--wine-soft);}
+  .dropzone p{margin:0 0 18px;color:var(--ink-soft);font-size:15px;}
+  .dropzone .btn{cursor:pointer;}
+  .dropzone .file-hint{
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:12.5px;
+    color:var(--ink-soft);margin-top:14px;
+  }
+  input[type="file"]{display:none;}
+
+  .btn{
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:14.5px;
+    padding:13px 26px;border-radius:2px;border:1px solid var(--ink);
+    background:transparent;color:var(--ink);cursor:pointer;text-decoration:none;
+    display:inline-block;
+  }
+  .btn-primary{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .btn-primary:hover{background:#000;}
+  .btn:hover{background:rgba(0,0,0,0.04);}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;}
+  .btn:disabled:hover{background:transparent;}
+  .btn-small{padding:9px 16px;font-size:13px;}
+
+  .status-line{
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:13.5px;
+    color:var(--ink-soft);margin-top:10px;
+  }
+  .status-line.is-error{color:var(--wine);}
+
+  /* ---------- privacy note ---------- */
+  .privacy-note{
+    display:flex;gap:12px;align-items:flex-start;
+    border:1px solid var(--good);background:var(--good-soft);
+    padding:16px 20px;margin:0 0 28px;
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:13.5px;color:#2C4A33;
+  }
+  .privacy-note b{display:block;color:var(--ink);font-size:14px;margin-bottom:2px;}
+
+  /* ---------- results ---------- */
+  #results{display:none;}
+  #results.is-visible{display:block;}
+
+  .stat-row{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+    border:1px solid var(--line);margin:32px 0 28px;
+  }
+  .stat{padding:22px 22px;border-right:1px solid var(--line);}
+  .stat:last-child{border-right:none;}
+  .stat-label{
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;
+    color:var(--ink-soft);margin:0 0 8px;letter-spacing:0.02em;text-transform:uppercase;
+  }
+  .stat-value{font-size:26px;line-height:1.15;}
+  .stat-value small{font-size:14px;color:var(--ink-soft);display:block;margin-top:2px;}
+
+  .controls-row{
+    display:flex;justify-content:space-between;align-items:center;
+    flex-wrap:wrap;gap:14px;margin-bottom:16px;
+  }
+  .segmented{
+    display:inline-flex;border:1px solid var(--ink);border-radius:2px;overflow:hidden;
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:13.5px;
+  }
+  .segmented button{
+    padding:9px 18px;border:none;background:transparent;color:var(--ink);
+    cursor:pointer;border-right:1px solid var(--ink);
+  }
+  .segmented button:last-child{border-right:none;}
+  .segmented button.is-active{background:var(--ink);color:#fff;}
+
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);}
+  table{width:100%;border-collapse:collapse;font-family:"Helvetica Neue",Arial,sans-serif;font-size:14px;}
+  thead th{
+    text-align:left;font-weight:600;font-size:12.5px;letter-spacing:0.02em;text-transform:uppercase;
+    color:var(--ink-soft);padding:13px 16px;border-bottom:1px solid var(--line);
+    background:var(--cream-panel);white-space:nowrap;cursor:pointer;user-select:none;
+  }
+  thead th.is-sorted{color:var(--ink);}
+  thead th .arrow{margin-left:4px;color:var(--gold);}
+  tbody td{padding:12px 16px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--cream-panel);}
+  td.num, th.num{text-align:right;}
+  td.name{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-size:15px;white-space:normal;}
+
+  .table-actions{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:16px;flex-wrap:wrap;gap:12px;
+  }
+  .row-count{font-family:"Helvetica Neue",Arial,sans-serif;font-size:13px;color:var(--ink-soft);}
+
+  .empty-note{
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:13.5px;color:var(--ink-soft);
+    padding:24px;text-align:center;
+  }
+
+  footer{padding:60px 0 60px;}
+  .footer-row{
+    display:flex;justify-content:space-between;align-items:center;
+    flex-wrap:wrap;gap:16px;
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:13px;color:var(--ink-soft);
+  }
+  footer a{text-decoration:none;color:var(--ink-soft);}
+  footer a:hover{color:var(--ink);}
+
+  @media (max-width:640px){
+    .hero h1{font-size:28px;}
+    .stat-row{grid-template-columns:1fr 1fr;}
+    .stat:nth-child(2){border-right:none;}
+    .stat:nth-child(3),.stat:nth-child(4){border-top:1px solid var(--line);}
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="index.html" class="nav-mark">Ayoo</a>
+  <a href="index.html#tools" class="nav-back">← Back to portfolio</a>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <p class="hero-eyebrow">Free tool for authors</p>
+    <h1>KDP Royalty Tracker</h1>
+    <p class="hero-sub">Upload your KDP sales export (the .xlsx or .csv you download from KDP Reports) and see royalties, units, and KENP reads broken down by title, month, or marketplace.</p>
+  </div>
+
+  <div class="privacy-note">
+    <span aria-hidden="true">🔒</span>
+    <div><b>Nothing leaves your browser.</b> The file is parsed locally with JavaScript — it's never uploaded to a server, including this one.</div>
+  </div>
+
+  <div class="dropzone" id="dropzone">
+    <p id="dropzone-text">Drag your KDP sales report here, or</p>
+    <label class="btn btn-primary" for="file-input" id="upload-btn">Choose a file</label>
+    <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
+    <div class="file-hint">Accepts .xlsx or .csv — the "Download Report" file from KDP Reports → Sales Dashboard.</div>
+    <div class="status-line" id="status-line"></div>
+  </div>
+
+  <div id="results">
+    <hr class="rule">
+
+    <div class="stat-row" id="stat-row"></div>
+
+    <div class="controls-row">
+      <div class="segmented" id="group-toggle">
+        <button data-group="title" class="is-active">By title</button>
+        <button data-group="month">By month</button>
+        <button data-group="marketplace">By marketplace</button>
+      </div>
+      <button class="btn btn-small" id="reset-btn">Load a different file</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="results-table">
+        <thead id="results-thead"></thead>
+        <tbody id="results-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="table-actions">
+      <span class="row-count" id="row-count"></span>
+      <button class="btn btn-small" id="download-csv">Download this breakdown as CSV</button>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="wrap footer-row">
+    <span>Ayoo — Mainz, Germany</span>
+    <span><a href="https://x.com/_Bethdesigns" target="_blank" rel="noopener">@_Bethdesigns</a></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- column detection ----------
+  var COLUMN_ALIASES = {
+    date: ["royaltydate", "transactiondate", "date", "orderdate", "salesdate"],
+    title: ["title", "booktitle"],
+    asin: ["asinisbn", "asin", "isbn"],
+    marketplace: ["marketplace", "store", "amazonmarketplace"],
+    transactionType: ["transactiontype", "royaltytype"],
+    units: ["netunitssold", "unitssold", "units", "netunits"],
+    royalty: ["royalty", "royaltyamount", "estimatedroyalty", "earnings"],
+    currency: ["currency", "currencycode", "royaltycurrency"],
+    kenp: ["kenpreadfull", "kenpread", "kenppagesread", "kenp"]
+  };
+
+  function normalizeHeader(h) {
+    return String(h || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }
+
+  function detectColumns(headerRow) {
+    var map = {};
+    var normalized = headerRow.map(normalizeHeader);
+    Object.keys(COLUMN_ALIASES).forEach(function (field) {
+      // Walk aliases in priority order (e.g. "Net Units Sold" before the
+      // gross "Units Sold") rather than whichever column happens to come
+      // first in the sheet, so refunds get netted out correctly.
+      var aliases = COLUMN_ALIASES[field];
+      for (var a = 0; a < aliases.length; a++) {
+        var idx = normalized.indexOf(aliases[a]);
+        if (idx !== -1) {
+          map[field] = headerRow[idx];
+          break;
+        }
+      }
+    });
+    return map;
+  }
+
+  function parseNumber(v) {
+    if (typeof v === "number") return v;
+    if (!v) return 0;
+    var n = parseFloat(String(v).replace(/[^0-9.\-]/g, ""));
+    return isNaN(n) ? 0 : n;
+  }
+
+  function monthKey(dateVal) {
+    if (!dateVal) return "Unknown";
+    var d;
+    if (typeof dateVal === "number") {
+      // Excel serial date
+      d = new Date(Math.round((dateVal - 25569) * 86400 * 1000));
+    } else {
+      d = new Date(dateVal);
+    }
+    if (isNaN(d.getTime())) return "Unknown";
+    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return months[d.getMonth()] + " " + d.getFullYear();
+  }
+
+  // ---------- state ----------
+  var records = []; // { title, marketplace, month, units, royalty, currency, kenp }
+  var currencies = [];
+  var currentGroup = "title";
+  var sortKey = "royalty";
+  var sortDir = "desc";
+
+  // ---------- three.js-style async lib loading ----------
+  var xlsxReady = false;
+  var xlsxScript = document.createElement("script");
+  xlsxScript.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+  xlsxScript.async = true;
+  xlsxScript.onload = function () {
+    xlsxReady = true;
+    setStatus("");
+  };
+  xlsxScript.onerror = function () {
+    setStatus("Couldn't load the file parser (network issue). Refresh the page and try again.", true);
+  };
+  document.head.appendChild(xlsxScript);
+
+  var dropzone = document.getElementById("dropzone");
+  var fileInput = document.getElementById("file-input");
+  var statusLine = document.getElementById("status-line");
+  var uploadBtn = document.getElementById("upload-btn");
+
+  function setStatus(msg, isError) {
+    statusLine.textContent = msg;
+    statusLine.classList.toggle("is-error", !!isError);
+    dropzone.classList.toggle("is-error", !!isError);
+  }
+
+  ["dragenter", "dragover"].forEach(function (evt) {
+    dropzone.addEventListener(evt, function (e) {
+      e.preventDefault();
+      dropzone.classList.add("is-dragover");
+    });
+  });
+  ["dragleave", "drop"].forEach(function (evt) {
+    dropzone.addEventListener(evt, function (e) {
+      e.preventDefault();
+      dropzone.classList.remove("is-dragover");
+    });
+  });
+  dropzone.addEventListener("drop", function (e) {
+    var f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) handleFile(f);
+  });
+  fileInput.addEventListener("change", function () {
+    if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
+  });
+
+  function handleFile(file) {
+    if (!xlsxReady) {
+      setStatus("Still loading the file parser — try again in a second.", true);
+      return;
+    }
+    setStatus("Reading " + file.name + " …", false);
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var data = new Uint8Array(e.target.result);
+        var workbook = XLSX.read(data, { type: "array", cellDates: false });
+        var parsed = parseWorkbook(workbook);
+        if (!parsed.length) {
+          setStatus(
+            "Couldn't find recognizable KDP columns (Title, Units, Royalty, etc.) in this file. Make sure it's the report downloaded from KDP Reports → Sales Dashboard.",
+            true
+          );
+          return;
+        }
+        records = parsed;
+        currencies = Array.from(new Set(records.map(function (r) { return r.currency || "USD"; })));
+        setStatus("Loaded " + file.name + " — " + records.length + " sales rows.", false);
+        showResults();
+      } catch (err) {
+        setStatus("Couldn't read that file. Make sure it's a .xlsx or .csv KDP export.", true);
+      }
+    };
+    reader.onerror = function () {
+      setStatus("Couldn't read that file from disk.", true);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function parseWorkbook(workbook) {
+    var out = [];
+    workbook.SheetNames.forEach(function (sheetName) {
+      var sheet = workbook.Sheets[sheetName];
+      var rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+      if (!rows.length) return;
+
+      var headerRowIdx = -1;
+      var colMap = null;
+      for (var i = 0; i < Math.min(rows.length, 10); i++) {
+        var candidate = detectColumns(rows[i]);
+        if (candidate.title && (candidate.royalty || candidate.units || candidate.kenp)) {
+          headerRowIdx = i;
+          colMap = candidate;
+          break;
+        }
+      }
+      if (headerRowIdx === -1) return;
+
+      var headerRow = rows[headerRowIdx];
+      var indexOf = {};
+      Object.keys(colMap).forEach(function (field) {
+        indexOf[field] = headerRow.indexOf(colMap[field]);
+      });
+
+      for (var r = headerRowIdx + 1; r < rows.length; r++) {
+        var row = rows[r];
+        if (!row || !row.length) continue;
+        var title = indexOf.title >= 0 ? row[indexOf.title] : "";
+        if (!title) continue;
+
+        out.push({
+          title: String(title).trim(),
+          marketplace: indexOf.marketplace >= 0 ? String(row[indexOf.marketplace] || "Unknown") : "Unknown",
+          month: indexOf.date >= 0 ? monthKey(row[indexOf.date]) : "Unknown",
+          units: indexOf.units >= 0 ? parseNumber(row[indexOf.units]) : 0,
+          royalty: indexOf.royalty >= 0 ? parseNumber(row[indexOf.royalty]) : 0,
+          currency: indexOf.currency >= 0 ? String(row[indexOf.currency] || "USD").trim() : "USD",
+          kenp: indexOf.kenp >= 0 ? parseNumber(row[indexOf.kenp]) : 0
+        });
+      }
+    });
+    return out;
+  }
+
+  // ---------- aggregation ----------
+  function aggregate(groupField) {
+    var groups = {};
+    records.forEach(function (r) {
+      var key = r[groupField] || "Unknown";
+      if (!groups[key]) {
+        groups[key] = { key: key, units: 0, kenp: 0, royaltyByCurrency: {} };
+      }
+      var g = groups[key];
+      g.units += r.units;
+      g.kenp += r.kenp;
+      var cur = r.currency || "USD";
+      g.royaltyByCurrency[cur] = (g.royaltyByCurrency[cur] || 0) + r.royalty;
+    });
+    return Object.keys(groups).map(function (k) { return groups[k]; });
+  }
+
+  function totalRoyaltyForSort(g) {
+    // sort key when multiple currencies exist: sum face values (only used for
+    // ordering rows, real totals are always shown split by currency)
+    var sum = 0;
+    Object.keys(g.royaltyByCurrency).forEach(function (c) { sum += g.royaltyByCurrency[c]; });
+    return sum;
+  }
+
+  // ---------- rendering ----------
+  var resultsEl = document.getElementById("results");
+  var statRow = document.getElementById("stat-row");
+  var thead = document.getElementById("results-thead");
+  var tbody = document.getElementById("results-tbody");
+  var rowCountEl = document.getElementById("row-count");
+  var groupToggle = document.getElementById("group-toggle");
+
+  function fmtMoney(amount, currency) {
+    try {
+      return new Intl.NumberFormat(undefined, { style: "currency", currency: currency || "USD" }).format(amount);
+    } catch (e) {
+      return (currency || "USD") + " " + amount.toFixed(2);
+    }
+  }
+
+  function fmtInt(n) {
+    return new Intl.NumberFormat().format(Math.round(n));
+  }
+
+  function renderStats() {
+    var totalUnits = 0, totalKenp = 0;
+    var royaltyByCurrency = {};
+    var titles = new Set();
+    records.forEach(function (r) {
+      totalUnits += r.units;
+      totalKenp += r.kenp;
+      titles.add(r.title);
+      var c = r.currency || "USD";
+      royaltyByCurrency[c] = (royaltyByCurrency[c] || 0) + r.royalty;
+    });
+
+    var royaltyStr = Object.keys(royaltyByCurrency)
+      .map(function (c) { return fmtMoney(royaltyByCurrency[c], c); })
+      .join(" + ");
+
+    var stats = [
+      { label: "Titles", value: fmtInt(titles.size) },
+      { label: "Units sold", value: fmtInt(totalUnits) },
+      { label: "KENP pages read", value: fmtInt(totalKenp) },
+      { label: "Total royalty", value: royaltyStr || fmtMoney(0, "USD") }
+    ];
+
+    statRow.innerHTML = "";
+    stats.forEach(function (s) {
+      var div = document.createElement("div");
+      div.className = "stat";
+      div.innerHTML =
+        '<p class="stat-label sans">' + s.label + "</p>" +
+        '<p class="stat-value tnum">' + s.value + "</p>";
+      statRow.appendChild(div);
+    });
+  }
+
+  function groupLabel(field) {
+    return field === "title" ? "Title" : field === "month" ? "Month" : "Marketplace";
+  }
+
+  function renderTable() {
+    var groups = aggregate(currentGroup);
+
+    groups.sort(function (a, b) {
+      var av, bv;
+      if (sortKey === "key") { av = a.key; bv = b.key; }
+      else if (sortKey === "units") { av = a.units; bv = b.units; }
+      else if (sortKey === "kenp") { av = a.kenp; bv = b.kenp; }
+      else { av = totalRoyaltyForSort(a); bv = totalRoyaltyForSort(b); }
+
+      if (typeof av === "string") {
+        return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+      }
+      return sortDir === "asc" ? av - bv : bv - av;
+    });
+
+    var headers = [
+      { key: "key", label: groupLabel(currentGroup), num: false },
+      { key: "units", label: "Units", num: true },
+      { key: "kenp", label: "KENP reads", num: true },
+      { key: "royalty", label: "Royalty", num: true }
+    ];
+
+    thead.innerHTML =
+      "<tr>" +
+      headers
+        .map(function (h) {
+          var sorted = h.key === sortKey;
+          var arrow = sorted ? '<span class="arrow">' + (sortDir === "asc" ? "↑" : "↓") + "</span>" : "";
+          return (
+            '<th class="sans' + (h.num ? " num" : "") + (sorted ? " is-sorted" : "") + '" data-key="' +
+            h.key +
+            '">' +
+            h.label +
+            arrow +
+            "</th>"
+          );
+        })
+        .join("") +
+      "</tr>";
+
+    tbody.innerHTML = "";
+    if (!groups.length) {
+      var tr = document.createElement("tr");
+      tr.innerHTML = '<td colspan="4" class="empty-note">No rows to show.</td>';
+      tbody.appendChild(tr);
+    } else {
+      groups.forEach(function (g) {
+        var royaltyStr = Object.keys(g.royaltyByCurrency)
+          .map(function (c) { return fmtMoney(g.royaltyByCurrency[c], c); })
+          .join(" + ");
+        var tr = document.createElement("tr");
+        tr.innerHTML =
+          '<td class="name">' + escapeHtml(g.key) + "</td>" +
+          '<td class="num tnum">' + fmtInt(g.units) + "</td>" +
+          '<td class="num tnum">' + fmtInt(g.kenp) + "</td>" +
+          '<td class="num tnum">' + royaltyStr + "</td>";
+        tbody.appendChild(tr);
+      });
+    }
+
+    rowCountEl.textContent = groups.length + " row" + (groups.length === 1 ? "" : "s") + " · " + records.length + " underlying sales rows";
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function showResults() {
+    renderStats();
+    renderTable();
+    resultsEl.classList.add("is-visible");
+    resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  groupToggle.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-group]");
+    if (!btn) return;
+    currentGroup = btn.getAttribute("data-group");
+    Array.prototype.forEach.call(groupToggle.querySelectorAll("button"), function (b) {
+      b.classList.toggle("is-active", b === btn);
+    });
+    sortKey = "royalty";
+    sortDir = "desc";
+    renderTable();
+  });
+
+  thead.addEventListener("click", function (e) {
+    var th = e.target.closest("th[data-key]");
+    if (!th) return;
+    var key = th.getAttribute("data-key");
+    if (sortKey === key) {
+      sortDir = sortDir === "asc" ? "desc" : "asc";
+    } else {
+      sortKey = key;
+      sortDir = key === "key" ? "asc" : "desc";
+    }
+    renderTable();
+  });
+
+  document.getElementById("reset-btn").addEventListener("click", function () {
+    records = [];
+    fileInput.value = "";
+    resultsEl.classList.remove("is-visible");
+    setStatus("");
+    dropzone.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
+  document.getElementById("download-csv").addEventListener("click", function () {
+    var groups = aggregate(currentGroup);
+    var allCurrencies = currencies.length ? currencies : ["USD"];
+    var header = [groupLabel(currentGroup), "Units", "KENP Reads"].concat(
+      allCurrencies.map(function (c) { return "Royalty (" + c + ")"; })
+    );
+    var lines = [header.join(",")];
+    groups.forEach(function (g) {
+      var row = [
+        '"' + String(g.key).replace(/"/g, '""') + '"',
+        g.units,
+        g.kenp
+      ].concat(
+        allCurrencies.map(function (c) { return (g.royaltyByCurrency[c] || 0).toFixed(2); })
+      );
+      lines.push(row.join(","));
+    });
+    var blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "kdp-royalty-breakdown-by-" + currentGroup + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+})();
+</script>
+</body>
+</html>
