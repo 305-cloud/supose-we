@@ -7,17 +7,17 @@
 <meta name="description" content="Upload your KDP sales export and see royalties, units, and KENP reads by title, month, and marketplace — read entirely in your browser. Nothing is uploaded anywhere.">
 <style>
   :root{
-    --cream:#F3EFE3;
-    --cream-panel:#FAF7EE;
-    --ink:#1E1B16;
-    --ink-soft:#6B6558;
-    --line:#DDD5C2;
-    --gold:#B4832E;
-    --gold-soft:#E7D9B8;
-    --wine:#5C2A3A;
-    --wine-soft:#EADFE1;
-    --good:#3F6B4A;
-    --good-soft:#E3EDE4;
+    --cream:#14110D;
+    --cream-panel:#1D1811;
+    --ink:#EDE7D8;
+    --ink-soft:#A79E88;
+    --line:#332C20;
+    --gold:#D6A94A;
+    --gold-soft:#2E2412;
+    --wine:#C4667B;
+    --wine-soft:#2B171C;
+    --good:#7FC98F;
+    --good-soft:#17261B;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -75,9 +75,9 @@
     background:transparent;color:var(--ink);cursor:pointer;text-decoration:none;
     display:inline-block;
   }
-  .btn-primary{background:var(--ink);color:#fff;border-color:var(--ink);}
-  .btn-primary:hover{background:#000;}
-  .btn:hover{background:rgba(0,0,0,0.04);}
+  .btn-primary{background:var(--ink);color:var(--cream);border-color:var(--ink);}
+  .btn-primary:hover{filter:brightness(1.12);}
+  .btn:hover{background:rgba(255,255,255,0.06);}
   .btn:disabled{opacity:0.45;cursor:not-allowed;}
   .btn:disabled:hover{background:transparent;}
   .btn-small{padding:9px 16px;font-size:13px;}
@@ -93,7 +93,7 @@
     display:flex;gap:12px;align-items:flex-start;
     border:1px solid var(--good);background:var(--good-soft);
     padding:16px 20px;margin:0 0 28px;
-    font-family:"Helvetica Neue",Arial,sans-serif;font-size:13.5px;color:#2C4A33;
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:13.5px;color:var(--good);
   }
   .privacy-note b{display:block;color:var(--ink);font-size:14px;margin-bottom:2px;}
 
@@ -127,7 +127,7 @@
     cursor:pointer;border-right:1px solid var(--ink);
   }
   .segmented button:last-child{border-right:none;}
-  .segmented button.is-active{background:var(--ink);color:#fff;}
+  .segmented button.is-active{background:var(--ink);color:var(--cream);}
 
   .table-wrap{overflow-x:auto;border:1px solid var(--line);}
   table{width:100%;border-collapse:collapse;font-family:"Helvetica Neue",Arial,sans-serif;font-size:14px;}
@@ -163,6 +163,7 @@
   }
   footer a{text-decoration:none;color:var(--ink-soft);}
   footer a:hover{color:var(--ink);}
+  .footer-links{display:flex;gap:20px;flex-wrap:wrap;}
 
   @media (max-width:640px){
     .hero h1{font-size:28px;}
@@ -232,7 +233,11 @@
 <footer>
   <div class="wrap footer-row">
     <span>Ayoo — Mainz, Germany</span>
-    <span><a href="https://x.com/_Bethdesigns" target="_blank" rel="noopener">@_Bethdesigns</a></span>
+    <span class="footer-links">
+      <a href="mailto:beth39990@gmail.com">beth39990@gmail.com</a>
+      <a href="https://x.com/_Bethdesigns" target="_blank" rel="noopener">@_Bethdesigns</a>
+      <a href="https://www.tiktok.com/@bethdesigns28" target="_blank" rel="noopener">@bethdesigns28</a>
+    </span>
   </div>
 </footer>
 
